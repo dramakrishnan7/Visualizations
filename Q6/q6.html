@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Q6 Chloropeth</title>
+		<div class="heatmap"></div>
+		<script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+		<script type="text/javascript" src="../lib/d3-scale-chromatic.v1.min.js"></script>
+		<script type="text/javascript" src="../lib/topojson.v2.min.js"></script>
+		
+		<style type="text/css">
+			
+			body{
+			background-color:white;
+				text-align:center;
+			}
+			h1,h3,p{
+			text-align:center;
+			}
+			.counties {
+			fill: none;
+			}
+
+			.states {
+			fill: none;
+			stroke: #fff;
+			stroke-linejoin: round;
+			}
+
+
+		</style>
+	</head>
+	<body>
+	<script type="text/javascript">
+	var width = 1200;
+	var height = 600;
+	var svg = d3.select("body")
+						.append("svg")
+						.attr("width", width)
+						.attr("height", height);
+
+var poverty = d3.map();
+var Pop = d3.map();
+var Inc = d3.map();
+var State = d3.map();
+var County = d3.map();
+
+var path = d3.geoPath();
+
+var x = d3.scaleLinear()
+    .domain([0, 9])
+    .rangeRound([50, 200]);
+
+var color = d3.scaleThreshold()
+    .domain(d3.range(1, 10))
+    .range(d3.schemeBlues[9]);
+
+var g = svg.append("g")
+    .attr("class", "key")
+    .attr("transform", "translate(980,40)");
+
+var g2 = svg.append("g")
+    .attr("class", "counties");
+    //.attr("transform", "translate(980,40)");
+  
+    //svg.append("g")
+    //  .attr("class", "counties")
+
+
+g.selectAll("rect")
+  .data(color.range().map(function(d) {
+      d = color.invertExtent(d);
+      if (d[0] == null) d[0] = x.domain()[0];
+      if (d[1] == null) d[1] = x.domain()[1];
+      return d;
+    }))
+  .enter().append("rect")
+    .attr("width",8)
+    .attr("y", function(d) { return x(d[0]); })
+	.attr("x", 0)
+    .attr("height", function(d) { return (x(d[1]) - x(d[0])); })
+    .attr("fill", function(d) { return color(d[0]); });
+
+g.append("text")
+    .attr("class", "caption")
+	//.attr("transform", "translate(" + 950 + "," + 0 + ")")
+    //.attr("x", x.range()[0])
+    //.attr("y", -6)
+    .attr("fill", "#000")
+    .attr("text-anchor", "start")
+    .attr("font-weight", "bold")
+    .text("Poverty rate");
+
+g.call(d3.axisRight()
+	.scale(x)
+    .tickSize(8)
+	//.attr("transform", "translate(" + 950 + "," + 0 + ")")
+	//.attr("x", x.range()[0])
+	.tickFormat(function(x, i) { return i ? x : "<="+x + "%"; })
+    .tickValues(color.domain()))
+	.select(".domain")
+	.remove();
+
+	
+		var promises = [d3.json("us.json"),
+                d3.csv("county_poverty.csv", function(d){poverty.set(d.CensusId, +d.Poverty)}),
+				d3.csv("county_poverty.csv", function(d){State.set(d.CensusId, d.State)}),
+				d3.csv("county_poverty.csv", function(d){County.set(d.CensusId, d.County)}),
+				d3.csv("county_detail.csv", function(d){Inc.set(d.CensusId,+d.IncomePerCap)}),
+				d3.csv("county_detail.csv", function(d){Pop.set(d.CensusId,+d.TotalPop)})]
+
+
+	//	Promise.all(promises).then(ready);
+Promise.all(promises).then(ready)
+
+const div = d3
+  .select('body')
+  .append('div')
+  .attr('class', 'tooltip')
+  .style('opacity', 0);
+
+
+function ready([us,pov,detail]) {
+
+    g2.selectAll("path")
+    .data(topojson.feature(us, us.objects.counties,us.objects.states).features)
+	//.data(topojson.feature(us).features)
+	
+    .enter().append("path")
+      .attr("fill", function(d) { return color(d.rate = poverty.get(d.id)); })
+      .attr("d", path)
+      .append("title")
+      .text(function(d) { return "State: "+State.get(d.id)+"\n"+"County: "+County.get(d.id)+"\n"+"Poverty rate: "+poverty.get(d.id)+ "%"+"\n"+"Total Population: "+ Pop.get(d.id)+"\n"+ "Income per Capita: "+Inc.get(d.id) ; })
+	   .on('mouseover', d => {
+      div
+        .transition()
+        .duration(200)
+        .style('opacity', 0.9);
+      div
+        .html(d.id+d.id+d.id)
+        .style('left', d3.event.pageX + 'px')
+        .style('top', d3.event.pageY + 108 + 'px');
+    })
+    .on('mouseout', () => {
+      div
+        .transition()
+        .duration(500)
+        .style('opacity', 0);
+    });
+
+  svg.append("path")
+      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+      .attr("class", "states")
+      .attr("d", path);
+}
+
+
+
+
+
+		</script>
+	</body>
+</html>

@@ -1,0 +1,1 @@
+Wins and Nomination & Rating- is a better feature at separation of - good vs bad -rating classes. Both value of rating & Wins/Nominations indepedntly seems to predict class. High values in both axes implies good rating class for both these categories

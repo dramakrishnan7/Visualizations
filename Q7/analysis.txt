@@ -1,0 +1,20 @@
+1.Ease to develop
+Excel : Although limited in functionality excel graphs are fairly easy to develop
+Tableau: Graphical interface helps in the ease of development
+D3: Requires knowledge of D3 , javascript and programming experience; so in comparison it is more difficult.
+2. Ease to maintain the visualization for developers
+Excel: Within limited capabilities, the models are easier to maintain
+Tableau: Do not have enough experience to comment on this
+D3: Maintenance of models will require understanding of across versions. Not all features are backward compatible.
+3.Usability of visualization
+Excel: Limited usability and portability due to non access to basic elements
+Tableau: Moderate usability due to more access to basic elements
+D3: Interactive abilities, network models, tooltip changes provide a richer experience to the end user.
+4.Scalability of visualization to large data sets
+Excel: Poor - often restricted by cell count
+Tableau : Do not have enough experience. Have observed slowness when using large datasets
+D3: Do not have enough experience with large datasets with D3.
+5. System requirements to run the visualization
+Excel:OS: Windows,Linux,Mac OS, Browsers: Chrome, IE/Does not work in Android OS
+Tableau:OS: Windows,Linux,Mac OS All Web browsers as per the specs page 
+D3 5+ supports recent browsers, such as Chrome, Edge, Firefox and Safari. D3 4 and below also supports IE 9+

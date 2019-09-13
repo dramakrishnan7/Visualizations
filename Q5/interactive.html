@@ -1,0 +1,239 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Q5 Interactive</title>
+		<div class="heatmap"></div>
+		<script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+		<style type="text/css">
+			
+			body{
+			background-color:white;
+				text-align:center;
+			}
+			
+			svg.text {
+				font-family: sans-serif;
+				font-size: 5px;
+			}
+			
+			h1,h3,p{
+			text-align:center;
+			}
+			.line {
+				fill: none;
+					stroke: #ffab00;
+					stroke-width: 3;
+					}
+			.axis path,
+			//.axis line {
+			//	fill: none;
+			//	stroke: transparent;
+			//	shape-rendering: crispEdges;
+			//}
+			
+			.axis text {
+				font-family: sans-serif;
+				font-size: 10px;
+				//stroke: transparent;
+				//fill: none;
+			.rect text {
+				font-family: sans-serif;
+				font-size: 8px;
+				//stroke: transparent;
+				//fill: none;
+				
+			}
+
+		</style>
+	</head>
+	<body>
+	<script type="text/javascript">
+	var yr_data = [2011, 2012, 2013,2014,2015];
+	var itemSize = 52,
+      cellSize = itemSize - 1,
+      margin = {top: 120, right: 20, bottom: 20, left: 110};
+    var selectValue = 2011;	 
+	var width = 750 - margin.right - margin.left,
+       height = 300 - margin.top - margin.bottom;
+	   margin_line = {top: 20, right: 20, bottom: 20, left: 20};
+	var offset_line_x = 500;
+	var offset_line_y = margin.top + margin_line.top;
+	
+	var width_line = 200 - margin_line.right - margin_line.left;
+	var height_line = 200- margin_line.top - margin_line.bottom;
+		
+	
+	var data=[{country: 'Bangladesh', population_2012: 105905297, growth: {year_2013:42488 , year_2014:934 , year_2015:52633 , year_2016:112822 , year_2017:160792}},
+        {country: 'Ethopia', population_2012: 75656319, growth: {year_2013:1606010 , year_2014:1606705 , year_2015:1600666 , year_2016:1590077 , year_2017:1580805}},
+        {country: 'Kenya', population_2012: 33007327, growth: {year_2013:705153 , year_2014:703994 , year_2015:699906 , year_2016:694295 , year_2017:687910}},
+        {country: 'Afghanistan', population_2012: 23280573, growth: {year_2013:717151 , year_2014:706082 , year_2015:665025 , year_2016:616262 , year_2017:573643}},
+        {country: 'Morocco', population_2012: 13619520, growth: {year_2013:11862 , year_2014:7997 , year_2015:391 , year_2016:-8820 , year_2017:-17029}}];
+	
+		var i;
+		var fullratio = new Map();
+		var ratio =[]
+		for (i=0;i<5;i++){
+		gr_2013 =	100*data[i].growth.year_2013/(data[i].population_2012+data[i].growth.year_2013);
+		gr_2014 =	100*data[i].growth.year_2014/(data[i].population_2012+data[i].growth.year_2013);
+		gr_2015 =	100*data[i].growth.year_2015/(data[i].population_2012+data[i].growth.year_2013+data[i].growth.year_2014);
+		gr_2016 =	100*data[i].growth.year_2016/(data[i].population_2012+data[i].growth.year_2013+data[i].growth.year_2014+data[i].growth.year_2015);
+		gr_2017 =	100*data[i].growth.year_2017/(data[i].population_2012+data[i].growth.year_2013+data[i].growth.year_2014+data[i].growth.year_2015+data[i].growth.year_2016);
+		dataArray1 = {gr:{2013: gr_2013,2014:  gr_2014,2015:  gr_2015,2016:  gr_2016,2017:  gr_2017}};
+		fullratio.set(data[i].country ,dataArray1);
+		}
+			var max_population = 110000000; 
+			var	y_elements = ['Bangladesh','Ethopia','Kenya','Afghanistan','Morocco'];
+			var svg_base = d3.select('.heatmap')
+						.append("svg")
+						.attr("width", width + margin.left + margin.right)
+						.attr("height", height + margin.top + margin.bottom);
+						
+			var svg =	svg_base.append("g")
+						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			
+			var svg_line = 		svg_base.append("g")	
+						.attr("transform", "translate(" + offset_line_x  + "," + offset_line_y + ")");
+			
+			update_barchart();	
+			//update_linechart();
+		
+	function update_barchart() {	
+					
+				var yScale = d3.scaleOrdinal()
+							.domain(y_elements	)
+							.range([0, itemSize, 2*itemSize,3*itemSize,4*itemSize]);
+				var yAxis = d3.axisLeft(yScale);
+				var xScale = d3.scaleLinear()
+							.domain([0,max_population])
+							.range([0,6*itemSize]);
+				var xAxis = d3.axisTop(xScale);
+				var i;
+				
+				var Pop_bar =	svg.selectAll('A').data(data)
+							.enter().append('g')
+							.attr("class", "pbar");
+							Pop_bar.append('rect')
+							.attr('class', 'cell')
+							.attr('width',  function(d) { 
+	
+							return xScale((d.population_2012+d.growth.year_2013+d.growth.year_2014+d.growth.year_2015+d.growth.year_2016+d.growth.year_2017));
+							})
+							
+							.attr('height', cellSize/2)
+							.attr('y', function(d) { return yScale(d.country); })
+							.attr('x','0')
+							.attr('fill','gray')
+							.attr('visibility','transparent')
+							.on("mouseover", function(d) {
+									
+									ratio = [{x: 2013,y: fullratio.get(d.country).gr[2013]},{x: 2014,y:  fullratio.get(d.country).gr[2014]},{x: 2015,y:  fullratio.get(d.country).gr[2015]},{x: 2016,y:  fullratio.get(d.country).gr[2016]},{x: 2017,y:  fullratio.get(d.country).gr[2017]}]; 
+								 	d3.select(this)
+										.attr("fill", "purple");
+									update_linechart();
+										})
+							.on("mouseout", function() {
+									d3.select(this).attr("fill", "gray");
+									svg_line.selectAll("g").remove();
+									svg_line.selectAll("path").remove();
+									})
+							
+							;	
+
+
+							
+							Pop_bar.append('text')
+							.text(function(d) { return (d.population_2012+d.growth.year_2013+d.growth.year_2014+d.growth.year_2015+d.growth.year_2016+d.growth.year_2017);})
+							.attr('y', function(d) { return yScale(d.country); })
+							.attr('x','0')
+							.attr('font-size','10px')
+							.attr("transform", "translate(0," + (height*0.1) + ")")
+							.attr('fill','white')
+							;   
+
+						
+					
+					
+			//Define X axis
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + (height*0.1) + ")")
+				.call(yAxis)
+				//.attr("transform", "translate(" + margin.top + ",100)")
+				.attr("y", 10)
+				.attr("x", -10)
+				.attr("dy", ".75em")
+				//.attr("transform", "rotate(0)");
+				//.style("text-anchor", "start");
+				
+			svg.append("g")
+				.attr("class", "axis")
+				//.attr("transform", "translate(0," + (margin.bottom) + ")")
+				.call(xAxis)
+				.selectAll("text")
+				.attr("y", -5)
+				.attr("x", -10)
+				.attr("fill",'none');
+			
+				   
+				
+
+};
+
+function update_linechart() {
+				var domain_max = Math.max(ratio[0]["y"],ratio[1]["y"],ratio[2]["y"],ratio[3]["y"],ratio[4]["y"]);
+				var domain_min = Math.min(ratio[0]["y"],ratio[1]["y"],ratio[2]["y"],ratio[3]["y"],ratio[4]["y"]);
+				var yScale_line = d3.scaleLinear()
+							.domain([domain_min,domain_max])
+							.range([150,0]);
+				var yAxis_line = d3.axisLeft(yScale_line);
+				var xScale_line = d3.scaleLinear()
+							.domain([2013,2017])
+							.range([0,150]);
+				var xAxis_line = d3.axisBottom(xScale_line);
+						
+			// 4. Call the y axis in a group tag
+				svg_line.append("g")
+					.attr("class", "y axis")
+					.call(d3.axisLeft(yScale_line) // Create an axis component with d3.axisLeft
+					.tickSize(1)
+					.tickFormat(function(x, i) { return ((i%2) > 0) ? "" : ""+x + ""; }));
+				svg_line.append("g")
+					.attr("class", "x axis")
+					.attr("transform", "translate(" + margin_line.left*0 + "," + (offset_line_y+10)+ ")")
+					.call(d3.axisBottom(xScale_line) // Create an axis component with d3.axisLeft
+					.tickSize(1)
+					.tickFormat(function(x, i) { return ((i%2	) > 0) ? "" : ""+x + ""; }));
+
+//7. d3's line generator
+				var line = d3.line()
+						.x(function(d) { return xScale_line(d.x); }) // set the x values for the line generator
+						.y(function(d) { return yScale_line(d.y); }) // set the y values for the line generator 
+						.curve(d3.curveMonotoneX); // apply smoothing to the line
+						
+				
+
+				// 9. Append the path, bind the data, and call the line generator 
+				svg_line.append("path")
+					.datum(ratio) // 10. Binds data to the line 
+					.attr("class", "line") // Assign a class for styling 
+					.attr("d", line); // 11. Calls the line generator 
+
+
+}
+
+
+
+function onchange() {
+			selectValue = d3.select('select').property('value')
+			d3.select('body')
+				.append('p')
+				//.text(selectValue + ' is the last selected option.')
+			dataset = fulldataset.filter(function (a) { return a[6] == selectValue; });
+			update_barchart();
+			
+			};
+
+		</script>
+	</body>
+</html>

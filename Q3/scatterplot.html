@@ -1,0 +1,366 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Q3 Scatter Plots</title>
+		<script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+		
+		<style type="text/css">
+			.pagebreak { page-break-before: always; } /* page-break-after works, as well */
+			svg.text {
+				font-family: sans-serif;
+				font-size: 5px;
+			}
+			
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: black;
+				shape-rendering: crispEdges;
+			}
+			
+			.axis text {
+				font-family: sans-serif;
+				font-size: 8px;
+			}
+
+		</style>
+	</head>
+	<body>
+	<script type="text/javascript">
+
+			//Width and height
+			var w = 600;
+			var h = 400;
+			var padding = 80;
+			var secondpic = 400;
+			var thirdpic = 800;
+			
+			var dataset = [];
+			var dataset2 = [];
+			//var Ratingd = [];
+			//var WinsNomd = [];
+		    
+
+			//Initialize empty array
+		   d3.csv('movies.csv')
+		   .then(function(data) {
+			data.map(function(d) {
+			///Ratingd.push(d.Rating);
+			//WinsNomd.push(d.WinsNoms);
+			dataset.push([+d.Rating, +d.WinsNoms, +d.Budget, +d.IsGoodRating,+d.Votes]);
+			dataset2.push([+d.Rating, +d.WinsNoms, +d.Budget, +d.IsGoodRating,+d.Votes]);
+			});
+			
+			var xScale = d3.scaleLinear()
+								 .domain([0, d3.max(dataset, function(d) { return d[0]; })])
+								 .range([padding, w - padding * 2]);
+
+			var yScale = d3.scaleLinear()
+								 .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+								 .range([h - padding, padding]);
+			var xScale2 = d3.scaleLinear()
+								 .domain([0, d3.max(dataset, function(d) { return d[0]; })])
+								 .range([padding, w - padding * 2]);
+
+			var yScale2 = d3.scaleLinear()
+								 .domain([0, d3.max(dataset, function(d) { return d[2]; })])
+								 .range([h - padding, padding]);
+			var xScale3 = d3.scaleLinear()
+								 .domain([0, d3.max(dataset, function(d) { return d[0]; })])
+								 .range([padding, w - padding * 2]);
+
+			var yScale3 = d3.scaleLinear()
+								 .domain([0, d3.max(dataset, function(d) { return d[4]; })])
+								 .range([h - padding, padding]);					 
+
+			var rScale = d3.scaleLinear()
+								 .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+								 .range([7, 25]);
+
+			//Define X axis
+			var xAxis = d3.axisBottom(xScale);
+			var xAxis2 = d3.axisBottom(xScale);
+			var xAxis3 = d3.axisBottom(xScale);
+			//	.attr("transform", "translate(0," + (h - padding) + ")")
+			//.ticks(20));
+			var yAxis = d3.axisLeft(yScale);
+			var yAxis2 = d3.axisLeft(yScale2);
+			var yAxis3 = d3.axisLeft(yScale3);
+
+			//Create SVG element
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h+thirdpic);
+			
+			var symbolGenerator = d3.symbol().size(12);
+			var symbolGenerator = d3.symbol();
+			
+			var symbolTypes = ['symbolCircle', 'symbolCross', 'symbolDiamond', 'symbolSquare', 'symbolStar', 'symbolTriangle', 'symbolWye'];
+			
+			var circle2 = svg.selectAll("A")
+			   .data(dataset)
+			   .enter()
+			   .append("path")
+			   .attr('transform', function(d, i) {
+						return 'translate(' + xScale(d[0]) + ','+ yScale(d[1])+')';
+						})
+			    .attr('d', function(d) {
+							symbolGenerator.size(12);
+							symbolGenerator.type(d3[symbolTypes[0]]);
+							//.type(function(d) {return d3[symbolTypes[0]];});
+							 if (d[3] > 0)  
+							 symbolGenerator.type(d3[symbolTypes[1]]);
+						return symbolGenerator();
+								})
+	 
+			   .attr ("fill","none")
+			   .attr("stroke", function(d) {if(d[3] > 0 ) {      return "blue";    } else {        return "red";    }})
+			   .attr("r", function(d) {
+			   		//return rScale(d[1]);
+					return 1.5;
+			   });
+			   
+			  var circle1 = svg.selectAll("B")
+			   .data(dataset2)
+			   .enter()
+			   .append("path")
+			   .attr('transform', function(d, i) {
+						return 'translate(' + xScale2(d[0]) + ','+ (yScale2(d[2])+secondpic)+')';
+						})
+			    .attr('d', function(d) {
+							symbolGenerator.size(12);
+							symbolGenerator.type(d3[symbolTypes[0]]);
+							//.type(function(d) {return d3[symbolTypes[0]];});
+							 if (d[3] > 0)  
+							 symbolGenerator.type(d3[symbolTypes[1]]);
+						return symbolGenerator();
+								})
+			   .attr ("fill","none")
+			    .attr("stroke", function(d) {if(d[3] > 0 ) {      return "blue";    } else {        return "red";    }})
+			   
+			   //.attr("transform", "translate(0," + (h+secondpic - padding) + ")")
+			  			   
+			   var circle3 = svg.selectAll("C")
+			   .data(dataset2)
+			   .enter()
+			   .append("path")
+			   .attr('transform', function(d, i) {
+						return 'translate(' + xScale2(d[0]) + ','+ (yScale3(d[4])+thirdpic)+')';
+						})
+			    .attr('d', function(d) {
+							symbolGenerator.size(rScale(d[1]));
+							symbolGenerator.type(d3[symbolTypes[0]]);
+							//.type(function(d) {return d3[symbolTypes[0]];});
+							 if (d[3] > 0)  
+							 symbolGenerator.type(d3[symbolTypes[1]]);
+						return symbolGenerator();
+								})
+			   .attr ("fill","none")
+			   .attr("stroke", function(d) {if(d[3] > 0 ) {      return "blue";    } else {        return "red";    }})
+			    ; 
+			   
+			   
+			   
+			   
+			 svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + (h - padding) + ")")
+				.call(xAxis);
+				
+			 svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + (h+secondpic - padding) + ")")
+				.call(xAxis2);	
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + (h+thirdpic - padding) + ")")
+				.call(xAxis3);	
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + padding + ",0)")
+				.call(yAxis);
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + padding +","+ (secondpic) + ")")
+				.call(yAxis2);
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + padding +","+ (thirdpic) + ")")
+				.call(yAxis3);	
+			
+			//Legends  Texts - Pic1
+			
+				svg.append("text")             
+					.attr("transform","translate(" + (w-padding*2) + " ," +(h-padding+10)+")")
+					.attr("font-size","10px")
+					.style("text-anchor", "middle")
+					.text("Rating");
+					
+				svg.append("text")             
+					.attr("transform","translate(100 ," +h/4+") rotate(270)")
+					//.attr("transform", "rotate(20)")
+					//.style("text-anchor", "middle")
+					.attr("style","alignment-baseline: center")
+					.text("WinsNoms")
+					.attr("font-size","10px");
+					
+				svg.append("text")             
+					.attr("transform","translate(" + (w/2) + " ," +padding+")")
+					.style("text-anchor", "middle")
+					.text("Wins+Nominations vs. Rating")	
+					.attr("font-size","15px");
+					
+				// Add legends for symbols	
+				svg.append("text")             
+					.attr("transform","translate(" + (w-padding) + " ," +padding+")")
+					.style("text-anchor", "middle")
+					.text("Bad Rating")	
+					.attr("font-size","8px");
+					
+				svg.append("text")             
+					.attr("transform","translate(" + (w-padding) + " ," +1.2*padding+")")
+					.style("text-anchor", "middle")
+					.text("Good Rating")	
+					.attr("font-size","8px");
+					
+				svg.append("circle")             
+					.attr ("fill","none")
+					.attr("cx",w-1.4*padding)
+					.attr("cy",0.95*padding)
+					.attr("r",1.5)
+					.attr("stroke","red");
+					
+				
+					
+				svg.append("path") 
+					//.append("path")
+					.attr('transform', function(d, i) {
+						return 'translate(' + (w-1.4*padding) + ','+ (1.15*padding)+')';
+						})
+					.attr('d', function(d) {
+							symbolGenerator.type(d3[symbolTypes[1]]);
+								 
+						return symbolGenerator();
+								})						
+					.attr ("fill","none")
+					.attr("stroke","blue");	
+					
+				
+				
+				//Legends  Texts - Pic2
+				
+				svg.append("text")             
+					.attr("transform","translate(" + (w-padding*2) + " ," +(h+secondpic-padding+10)+")")// + (height + margin.top + 20) + ")")
+					.style("text-anchor", "middle")
+					.attr("font-size","10px")
+					.text("Rating");
+				svg.append("text")             
+					.attr("transform","translate(100 ," +((h/4)+secondpic)+")rotate(270)")// + (height + margin.top + 20) + ")")
+					//.attr("transform","translate(100 ," +h/4+") rotate(270)")
+					.style("text-anchor", "middle")
+					.attr("font-size","10px")
+					.text("Budget");	
+				svg.append("text")             
+					.attr("transform","translate(" + (w/2) + " ," +(secondpic +padding)+")")// + (height + margin.top + 20) + ")")
+					.style("text-anchor", "middle")
+					.attr("font-size","15px")
+					.text("Budget vs. Rating");
+					
+				svg.append("circle")             
+					.attr ("fill","none")
+					.attr("cx",w-1.4*padding)
+					.attr("cy",h+0.95*padding)
+					.attr("r",1.5)
+					.attr("stroke","red");
+					
+				
+					
+				svg.append("path") 
+					//.append("path")
+					.attr('transform', function(d, i) {
+						return 'translate(' + (w-1.4*padding) + ','+ (h+1.15*padding)+')';
+						})
+					.attr('d', function(d) {
+							symbolGenerator.type(d3[symbolTypes[1]]);
+								 
+						return symbolGenerator();
+								})						
+					.attr ("fill","none")
+					.attr("stroke","blue");	
+				
+				
+					
+			svg.append("text")             
+					.attr("transform","translate(" + (w-padding) +  " ," +(h + padding)+")")// + (height + margin.top + 20) + ")")
+					.style("text-anchor", "middle")
+					.text("Bad Rating")	
+					.attr("font-size","8px");
+					
+				svg.append("text")             
+					.attr("transform","translate(" + (w-padding) +  " ," +(h +1.2*padding)+")")// + (height + margin.top + 20) + ")")
+					.style("text-anchor", "middle")
+					.text("Good Rating")	
+					.attr("font-size","8px");
+			//Legends  Texts - Pic3
+			
+			svg.append("text")             
+					.attr("transform","translate(" + (w-padding*2) + " ," +(h+thirdpic-padding+10)+")")// + (height + margin.top + 20) + ")")
+					.style("text-anchor", "middle")
+					.attr("font-size","10px")
+					.text("Rating");
+				svg.append("text")             
+					.attr("transform","translate(100 ," +((h/4)+thirdpic)+")rotate(270)")// + (height + margin.top + 20) + ")")
+					.style("text-anchor", "middle")
+					.attr("font-size","10px")
+					.text("Votes");	
+				svg.append("text")             
+					.attr("transform","translate(" + (w/2) + " ," +(thirdpic +padding)+")")// + (height + margin.top + 20) + ")")
+					.style("text-anchor", "middle")
+					.attr("font-size","15px")
+					.text("Votes vs. Rating Vs. WinsNoms");
+					
+				svg.append("circle")             
+					.attr ("fill","none")
+					.attr("cx",w-1.4*padding)
+					.attr("cy",2*h+0.95*padding)
+					.attr("r",1.5)
+					.attr("stroke","red");
+					
+				svg.append("path") 
+					//.append("path")
+					.attr('transform', function(d, i) {
+						return 'translate(' + (w-1.4*padding) + ','+ (2*h+1.15*padding)+')';
+						})
+					.attr('d', function(d) {
+							symbolGenerator.type(d3[symbolTypes[1]]);
+								 
+						return symbolGenerator();
+								})						
+					.attr ("fill","none")
+					.attr("stroke","blue");	
+					
+			svg.append("text")             
+					.attr("transform","translate(" + (w-padding) +  " ," +(2*h + padding)+")")// + (height + margin.top + 20) + ")")
+					.style("text-anchor", "middle")
+					.text("Bad Rating")	
+					.attr("font-size","8px");
+					
+				svg.append("text")             
+					.attr("transform","translate(" + (w-padding) +  " ," +(2*h +1.2*padding)+")")// + (height + margin.top + 20) + ")")
+					.style("text-anchor", "middle")
+					.text("Good Rating")	
+					.attr("font-size","8px");
+			
+			   
+				});
+  
+			
+
+		
+			
+
+		</script>
+	</body>
+</html>

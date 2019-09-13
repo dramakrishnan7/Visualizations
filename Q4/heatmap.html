@@ -1,0 +1,240 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Q4 HeatMap</title>
+		<div class="heatmap"></div>
+		<script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+		<style type="text/css">
+			
+			body{
+			background-color:white;
+				text-align:center;
+			}
+			h1,h3,p{
+			text-align:center;
+			}
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: transparent;
+				shape-rendering: crispEdges;
+			}
+			
+			.axis text {
+				font-family: sans-serif;
+				font-size: 8px;
+			}
+
+		</style>
+	</head>
+	<body>
+	<script type="text/javascript">
+	var data = [2011, 2012, 2013,2014,2015];
+	var itemSize = 22,
+      cellSize = itemSize - 1,
+      margin = {top: 120, right: 20, bottom: 20, left: 110};
+    var selectValue = 2011;	 
+	var width = 750 - margin.right - margin.left,
+      height = 300 - margin.top - margin.bottom;
+
+	var select = d3.select('body')
+					.append('select')
+					.attr('class','select')
+					.on('change',onchange)
+					.attr('x',0)
+					.attr('y',100);
+
+	
+
+		var options = select
+				.selectAll('option')
+				.data(data).enter()
+				.append('option')
+				.text(function (d) { return d; });
+				
+		var fulldataset = []
+		var dataset = []
+		var	x_elements = ['Bronx','Brooklyn','Manhattan','Queens','Staten Island'];
+		var	y_elements = ['Assault','Burglary','Housing','Murder','Robbery','Shooting'];
+		var svg = d3.select('.heatmap')
+						.append("svg")
+						.attr("width", width + margin.left + margin.right)
+						.attr("height", height + margin.top + margin.bottom)
+						.append("g")
+						.attr("transform", "translate(150," + (0.2*height) + ")");
+				var max = 20;
+				var maxtwo = 18;
+				var maxthree = 15;
+				var maxfour = 13;
+		
+		
+				var colorScale = d3.scaleThreshold()	
+								.domain([0,2,4,6,8,maxfour,maxthree,maxtwo,max])
+								.range(['#f7f4f9','#e7e1ef','#d4b9da','#c994c7','#df65b0','#e7298a','#ce1256','#980043','#67001f']);
+						
+		update_heatmap();		
+		
+	function update_heatmap() {	
+		d3.csv('heatmap.csv')
+		   .then(function(data) {
+			data.map(function(d) { 
+			  fulldataset.push([+d.Bronx,+d.Brooklyn,+d.Manhattan,+d.Queens,+d['Staten Island'], d["Crime Type"],d.Year]);
+									});
+			dataset = fulldataset.filter(function (a) { return a[6] == selectValue; });		
+				
+				max = Math.ceil(d3.max(d3.max(dataset, function(d) { return [d[0],d[1],d[2],d[3]]; })));
+				maxtwo = Math.ceil( d3.max(d3.max(dataset, function(d) { return [d[0],d[1],d[2],d[3]]; }))/1.3 );
+				maxthree = Math.ceil( d3.max(d3.max(dataset, function(d) { return [d[0],d[1],d[2],d[3]]; }))/2 );
+				maxfour = Math.ceil( d3.max(d3.max(dataset, function(d) { return [d[0],d[1],d[2],d[3]]; }))/3 );
+				colorScale = d3.scaleThreshold()	
+								.domain([0,2,4,6,8,maxfour,maxthree,maxtwo,max])
+								.range(['#f7f4f9','#e7e1ef','#d4b9da','#c994c7','#df65b0','#e7298a','#ce1256','#980043','#67001f']);
+				var yScale = d3.scaleOrdinal()
+							//.domain(['Assault','Burglary','Housing','Murder','Robbery','Shooting'])
+							.domain(y_elements)
+							.range([0, itemSize, 2*itemSize,3*itemSize,4*itemSize,5*itemSize]);
+				var yAxis = d3.axisTop(yScale);
+				var xScale = d3.scaleOrdinal()
+							.domain(x_elements)
+							.range([0, itemSize,2*itemSize,3*itemSize,4*itemSize]);
+				var xAxis = d3.axisLeft(xScale);
+				
+				
+				var x = d3.scaleLinear()
+						.domain([0, 9])
+						.rangeRound([150, 200]);
+						
+				var Axis = svg.append("g")
+							.attr("class", "key")
+							.attr("transform", "translate(-150,220)")
+							.call(d3.axisTop()
+						.scale(x)
+						.tickSize(8)
+						.tickFormat(function(x, i) { return i ? x : ""+x + ""; })
+						.tickValues(colorScale.domain()))
+						.select(".domain")
+						.remove();
+				var i;
+				for (i = 0; i < 9; i++) { 
+						svg.append("g")
+						.data(colorScale.range().map(function(d) {
+									d = colorScale.invertExtent(d);
+									if (d[0] == null) d[0] = x.domain()[0];
+									if (d[1] == null) d[1] = x.domain()[1];
+								return d;
+							}))
+							.attr("class", "key")
+							.attr("transform", "translate(-150,220)")
+									.append("rect")
+									.attr("width",function(d) { if (i<8){ return (x(colorScale.domain()[i+1]) - x(colorScale.domain()[i]));}} )
+									.attr("y", 0)
+									.attr("x", function(d) { return x(colorScale.domain()[i]); })
+									.attr("height", function(d) { return (8); })
+									.attr("fill", function(d) { return colorScale.range()[i+1]; });
+					}				
+				
+								
+				var A = svg.selectAll('A')
+							.data(dataset)
+							.enter().append('g').append('rect')
+							.attr('class', 'cell')
+							.attr('width', cellSize)
+							.attr('height', cellSize)
+							.attr('text','Bronx')
+							.attr("font-size","10px")
+							.attr('y', function(d) { return xScale("Bronx"); })
+							.attr('x', function(d) { return yScale(d[5]); })
+							.attr('fill', function(d) { return colorScale(+d[0]*1); });
+							
+				var B = svg.selectAll('B')
+							.data(dataset)
+							.enter().append('g').append('rect')
+							.attr('class', 'cell')
+							.attr('width', cellSize)
+							.attr('height', cellSize)
+							.attr('text','Brooklyn')
+							.attr("font-size","10px")
+							.attr('y', function(d) { return xScale("Brooklyn"); })
+							.attr('x', function(d) { return yScale(d[5]); })
+							.attr('fill', function(d) { return colorScale(+d[1]*1); });
+							
+				var C = svg.selectAll('C')
+							.data(dataset)
+							.enter().append('g').append('rect')
+							.attr('class', 'cell')
+							.attr('width', cellSize)
+							.attr('height', cellSize)
+							.attr('text','Manhattan')
+							.attr("font-size","10px")
+							.attr('y', function(d) { return xScale("Manhattan"); })
+							.attr('x', function(d) { return yScale(d[5]); })
+							.attr('fill', function(d) { return colorScale(d[2]); });
+							
+					var D = svg.selectAll('D')
+							.data(dataset)
+							.enter().append('g').append('rect')
+							.attr('class', 'cell')
+							.attr('width', cellSize)
+							.attr('height', cellSize)
+							.attr('text','Queens')
+							.attr("font-size","10px")
+							.attr('y', function(d) { return xScale("Queens"); })
+							.attr('x', function(d) { return yScale(d[5]); })
+							.attr('fill', function(d) { return colorScale(d[3]); });
+					var E = svg.selectAll('E')
+							.data(dataset)
+							.enter().append('g').append('rect')
+							.attr('class', 'cell')
+							.attr('width', cellSize)
+							.attr('height', cellSize)
+							.attr('text','Staten Island')
+							.attr("font-size","10px")
+							.attr('y', function(d) { return xScale("Staten Island"); })
+							.attr('x', function(d) { return yScale(d[5]); })
+							.attr('fill', function(d) { return colorScale(d[4]); });
+			//Define X axis
+			svg.append("g")
+				.attr("class", "axis")
+				//.attr("transform", "translate(" + margin.top + ",0)")
+				.attr("transform", "translate(0," + (height- margin.bottom) + ")")
+				.call(yAxis)
+				 .selectAll("text")
+				.attr("y", 0)
+				.attr("x", 15)
+				.attr("dy", ".35em")
+				.attr("transform", "rotate(270)")
+				.attr("font-size","100px");
+				//.style("text-anchor", "start");
+				
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + (margin.bottom) + ")")
+				.call(xAxis)
+				.selectAll("text")
+				.attr("y", 0)
+				.attr("x", -10)
+				.attr("font-size","15px");
+			
+				   
+				
+});
+};
+
+	
+
+function onchange() {
+			selectValue = d3.select('select').property('value')
+			d3.select('body')
+				.append('p')
+				
+			dataset = fulldataset.filter(function (a) { return a[6] == selectValue; });
+			svg.selectAll("rect").remove();
+			svg.selectAll("g").remove();
+			update_heatmap();
+			
+			};
+
+		</script>
+	</body>
+</html>
